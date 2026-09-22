@@ -1,0 +1,89 @@
+{
+  "name": "movedock",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "test": "vitest run",
+    "tauri": "tauri",
+    "app:dev": "tauri dev",
+    "app:build": "tauri build --target universal-apple-darwin",
+    "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "changelog": "changelogen",
+    "release:patch": "node scripts/release.mjs patch",
+    "release:minor": "node scripts/release.mjs minor",
+    "release:major": "node scripts/release.mjs major"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.7.2",
+    "vue": "^3.5.41"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.11.2",
+    "typescript": "~6.0.3",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.11",
+    "vue-tsc": "^3.3.10",
+    "changelogen": "^0.6.2"
+  },
+  "changelog": {
+    "types": {
+      "feat": {
+        "title": "🚀 新機能",
+        "semver": "minor"
+      },
+      "fix": {
+        "title": "🐛 バグ修正",
+        "semver": "patch"
+      },
+      "perf": {
+        "title": "⚡ パフォーマンスの向上",
+        "semver": "patch"
+      },
+      "refactor": {
+        "title": "♻️ リファクタリング",
+        "semver": "patch"
+      },
+      "docs": {
+        "title": "📖 ドキュメント"
+      },
+      "style": {
+        "title": "🎨 コードスタイル"
+      },
+      "test": {
+        "title": "✅ テストの追加・修正"
+      },
+      "ci": {
+        "title": "🤖 CI関連"
+      },
+      "build": {
+        "title": "📦 ビルド",
+        "semver": "patch"
+      },
+      "chore": {
+        "title": "🧹 ビルドプロセスまたは補助ツールの変更"
+      },
+      "config": {
+        "title": "🔧 設定ファイル"
+      },
+      "package": {
+        "title": "📦 パッケージ"
+      }
+    },
+    "templates": {
+      "commitMessage": "chore(release): v{{newVersion}}",
+      "tagMessage": "v{{newVersion}}",
+      "tagBody": "v{{newVersion}}"
+    }
+  }
+}

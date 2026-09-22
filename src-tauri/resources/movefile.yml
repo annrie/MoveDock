@@ -1,0 +1,38 @@
+# MoveDock / Wordmove — 実際の値へ書き換えてください。
+# パスワードは .env などで管理し、このファイルを公開しないでください。
+global:
+  sql_adapter: wpcli
+
+local:
+  vhost: http://example.local
+  wordpress_path: /absolute/path/to/wordpress
+  database:
+    name: wordpress
+    user: root
+    password: ""
+    host: localhost
+
+staging:
+  vhost: https://staging.example.com
+  wordpress_path: /var/www/wordpress
+  database:
+    name: wordpress
+    user: wordpress
+    password: ""
+    host: localhost
+  ssh:
+    host: staging.example.com
+    user: deploy
+    port: 22
+  exclude:
+    - '.git/'
+    - '.env*'
+    - 'node_modules/'
+    - 'vendor/'
+    - 'wp-config.php'
+    - 'Movefile*'
+    - 'movefile*'
+    - 'wp-content/*.sql*'
+  forbid:
+    push:
+      db: true
