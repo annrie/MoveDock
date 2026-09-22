@@ -97,9 +97,18 @@ export function useMoveDock() {
     })
   }
   async function saveSettings() {
-    await task('設定を保存中', async () => { await invoke('save_settings', { settings: { ...data.value.settings } }); savedSettings.value = JSON.stringify(data.value.settings); inspection.value = null; environment.value = ''; diagnostics.value = []; notice.value = '設定を保存しました。' })
+    await task('設定を保存中', async () => { await invoke('save_settings', { settings: { ...data.value.settings } }); savedSettings.value = JSON.stringify(data.value.settings); inspection.value = null; environment.value = ''; diagnostics.value = []; data.value.setupNotes = []; notice.value = '設定を保存しました。' })
   }
-  async function checkTools() { await task('実行環境を確認中', async () => { diagnostics.value = await invoke<Diagnostic[]>('diagnostics') }) }
+  async function autofillSettings() {
+    if (settingsDirty.value) return
+    await task('実行環境を検出中', async () => {
+      data.value = await invoke<AppData>('autofill_settings')
+      savedSettings.value = JSON.stringify(data.value.settings)
+      inspection.value = null; environment.value = ''; diagnostics.value = []
+      notice.value = '検出できた空欄を入力・保存しました。'
+    })
+  }
+  async function checkTools() { if (settingsDirty.value) return; await task('実行環境を確認中', async () => { diagnostics.value = await invoke<Diagnostic[]>('diagnostics') }) }
   async function chooseGemfile() { const path = await open({ title: 'Wordmove の Gemfile を選択', multiple: false }); if (typeof path === 'string') data.value.settings.gemfile = path }
   async function run(simulate: boolean) {
     if (!ready.value || !site.value) return
@@ -125,5 +134,5 @@ export function useMoveDock() {
     stopping.value = true
     try { await invoke('cancel_run') } catch (e) { error.value = String(e); stopping.value = false }
   }
-  return { native, data, settingsDirty, site, view, inspection, environment, direction, selectedTargets, document, dirty, busy, running, stopping, error, notice, logs, diagnostics, lastResult, locked, remote, ready, initialize, selectSite, addSite, loadEnvironments, editMovefile, reloadDocument, saveDocument, removeSite, saveSettings, checkTools, chooseGemfile, run, stop }
+  return { native, data, settingsDirty, site, view, inspection, environment, direction, selectedTargets, document, dirty, busy, running, stopping, error, notice, logs, diagnostics, lastResult, locked, remote, ready, initialize, selectSite, addSite, loadEnvironments, editMovefile, reloadDocument, saveDocument, removeSite, saveSettings, autofillSettings, checkTools, chooseGemfile, run, stop }
 }

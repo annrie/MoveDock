@@ -23,18 +23,32 @@ impl State {
     pub fn open(directory: PathBuf) -> Result<Self, String> {
         fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
         let file = directory.join("settings.json");
-        let data = match fs::read(&file) {
+        let mut data: AppData = match fs::read(&file) {
             Ok(bytes) => serde_json::from_slice(&bytes)
                 .map_err(|e| format!("設定ファイルを読めません: {e}"))?,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => AppData::default(),
             Err(e) => return Err(e.to_string()),
         };
-        Ok(Self {
+        let initialize = !data.setup_complete;
+        if initialize {
+            if crate::discovery::is_unconfigured(&data.settings) {
+                data.setup_notes = crate::discovery::detect(&mut data.settings);
+            }
+            data.setup_complete = true;
+        }
+        if initialize {
+            atomic_write(
+                &file,
+                &serde_json::to_vec_pretty(&data).map_err(|e| e.to_string())?,
+            )?;
+        }
+        let state = Self {
             data: Mutex::new(data),
             trusted: Mutex::new(HashMap::new()),
             active: Mutex::new(None),
             file,
-        })
+        };
+        Ok(state)
     }
     pub fn save(&self, data: &AppData) -> Result<(), String> {
         atomic_write(
@@ -71,4 +85,36 @@ pub fn site(data: &AppData, id: &str) -> Result<Site, String> {
         .find(|s| s.id == id)
         .cloned()
         .ok_or("サイトが見つかりません".into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[tokio::test]
+    async fn migration_preserves_manual_settings_and_setup_runs_once() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("settings.json");
+        let old = serde_json::json!({"settings":{"mode":"direct","executable":"/custom/wordmove","theme":"dark"},"sites":[],"history":[]});
+        fs::write(&file, old.to_string()).unwrap();
+        let state = State::open(dir.path().to_owned()).unwrap();
+        let data = state.data.lock().await;
+        assert!(data.setup_complete);
+        assert_eq!(data.settings.executable, "/custom/wordmove");
+        assert_eq!(data.settings.theme, "dark");
+        assert!(data.setup_notes.is_empty());
+        drop(data);
+        let before = fs::read(&file).unwrap();
+        State::open(dir.path().to_owned()).unwrap();
+        assert_eq!(fs::read(&file).unwrap(), before);
+    }
+    #[tokio::test]
+    async fn first_launch_persists_detected_settings() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = State::open(dir.path().join("data")).unwrap();
+        let data = state.data.lock().await;
+        assert!(data.setup_complete);
+        assert!(!data.setup_notes.is_empty());
+        let saved: AppData = serde_json::from_slice(&fs::read(&state.file).unwrap()).unwrap();
+        assert_eq!(saved.settings, data.settings);
+    }
 }

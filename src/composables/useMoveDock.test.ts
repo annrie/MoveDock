@@ -69,3 +69,25 @@ describe('sync workflow', () => {
     await app.saveDocument(); expect(app.inspection.value).toBe(null); expect(app.ready.value).toBe(false)
   })
 })
+
+describe('automatic setup', () => {
+  it('loads detected settings on startup and preserves them as saved values', async () => {
+    const app = useMoveDock(); await app.initialize()
+    expect(app.data.value.settings.executable).toBe('/tmp/mock-wordmove')
+    expect(app.settingsDirty.value).toBe(false)
+  })
+  it('does not replace unsaved edits or diagnose different saved settings', async () => {
+    const app = await loaded(); app.data.value.settings.executable = '/custom/wordmove'
+    mock.invoke.mockClear(); await app.autofillSettings(); await app.checkTools()
+    expect(mock.invoke).not.toHaveBeenCalled()
+    expect(app.data.value.settings.executable).toBe('/custom/wordmove')
+  })
+  it('loads and saves newly detected fields, invalidating the old environment', async () => {
+    const app = await loaded()
+    mock.invoke.mockResolvedValueOnce({ ...structuredClone(fixture), settings: { ...fixture.settings, rubyVersion: '3.3.12' }, setupComplete: true, setupNotes: ['detected'] })
+    await app.autofillSettings()
+    expect(mock.invoke).toHaveBeenCalledWith('autofill_settings')
+    expect(app.data.value.settings.rubyVersion).toBe('3.3.12')
+    expect(app.settingsDirty.value).toBe(false); expect(app.inspection.value).toBe(null)
+  })
+})

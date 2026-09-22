@@ -30,10 +30,26 @@ pub async fn save_settings(
     let mut data = state.data.lock().await;
     let mut next = data.clone();
     next.settings = settings;
+    next.setup_notes.clear();
     state.save(&next)?;
     *data = next;
     state.trusted.lock().await.clear();
     Ok(())
+}
+#[tauri::command]
+pub async fn autofill_settings(state: tauri::State<'_, State>) -> Result<AppData, String> {
+    let active = state.active.lock().await;
+    if active.is_some() {
+        return Err("実行中は設定を変更できません".into());
+    }
+    let mut data = state.data.lock().await;
+    let mut next = data.clone();
+    next.setup_notes = crate::discovery::detect(&mut next.settings);
+    next.setup_complete = true;
+    state.save(&next)?;
+    *data = next.clone();
+    state.trusted.lock().await.clear();
+    Ok(next)
 }
 #[tauri::command]
 pub async fn add_site(
@@ -269,6 +285,7 @@ pub async fn diagnostics(state: tauri::State<'_, State>) -> Result<Vec<Diagnosti
     let mut results = Vec::new();
     for name in [
         "ruby",
+        "php",
         "bundle",
         "ssh",
         "rsync",
@@ -298,7 +315,11 @@ pub async fn diagnostics(state: tauri::State<'_, State>) -> Result<Vec<Diagnosti
         Diagnostic {
             name: "Wordmove".into(),
             available: version.is_ok(),
-            detail: version.unwrap_or_else(|e| e).trim().into(),
+            detail: version.unwrap_or_else(|e| {
+                if settings.mode == "bundler" {
+                    format!("{e}\n\n指定した Gemfile のフォルダで bundle install が完了しているか確認してください。Ruby バージョン・gemset も同じ環境を使用します。")
+                } else { e }
+            }).trim().into(),
         },
     );
     Ok(results)

@@ -1,5 +1,6 @@
 mod cli;
 mod commands;
+mod discovery;
 mod model;
 mod process;
 mod store;
@@ -17,6 +18,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_data,
             commands::save_settings,
+            commands::autofill_settings,
             commands::add_site,
             commands::remove_site,
             commands::read_movefile,

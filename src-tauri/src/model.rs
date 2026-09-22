@@ -53,6 +53,8 @@ pub struct History {
 #[serde(rename_all = "camelCase", default)]
 pub struct AppData {
     pub settings: Settings,
+    pub setup_complete: bool,
+    pub setup_notes: Vec<String>,
     pub sites: Vec<Site>,
     pub history: Vec<History>,
 }

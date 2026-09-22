@@ -14,6 +14,25 @@ pub fn expand(value: &str) -> PathBuf {
     }
     PathBuf::from(value)
 }
+// Prefer installations with their own rbenv manager over abandoned shims.
+fn rbenv_paths(home: &Path) -> Vec<PathBuf> {
+    let roots = [home.join(".anyenv/envs/rbenv"), home.join(".rbenv")];
+    let mut paths = Vec::new();
+    for root in &roots {
+        if root.join("bin/rbenv").is_file() || root.join("libexec/rbenv").is_file() {
+            paths.push(root.join("shims"));
+        }
+    }
+    // Homebrew keeps the manager outside ~/.rbenv.
+    if ["/opt/homebrew/bin/rbenv", "/usr/local/bin/rbenv"]
+        .iter()
+        .any(|manager| Path::new(manager).is_file())
+        && !paths.contains(&home.join(".rbenv/shims"))
+    {
+        paths.push(home.join(".rbenv/shims"));
+    }
+    paths
+}
 pub fn path_env(settings: &Settings) -> OsString {
     let mut paths: Vec<PathBuf> = settings
         .extra_path
@@ -22,11 +41,8 @@ pub fn path_env(settings: &Settings) -> OsString {
         .map(|p| expand(p.trim()))
         .collect();
     if let Some(home) = dirs::home_dir() {
-        paths.extend([
-            home.join(".rbenv/shims"),
-            home.join(".anyenv/envs/rbenv/shims"),
-            home.join(".local/bin"),
-        ]);
+        paths.extend(rbenv_paths(&home));
+        paths.push(home.join(".local/bin"));
     }
     paths.extend(std::env::split_paths(
         &std::env::var_os("PATH").unwrap_or_default(),
@@ -77,6 +93,9 @@ pub fn base(settings: &Settings, cwd: &Path) -> Result<Command, String> {
         "BUNDLE_GEMFILE",
         "BUNDLE_PATH",
         "BUNDLE_APP_CONFIG",
+        "RBENV_DIR",
+        "RBENV_GEMSET_ALREADY",
+        "RBENV_GEMSET_FILE",
     ] {
         command.env_remove(key);
     }
@@ -96,6 +115,7 @@ pub fn base(settings: &Settings, cwd: &Path) -> Result<Command, String> {
             gemfile.parent().unwrap().join(".bundle"),
         );
         command
+            .env("RBENV_DIR", gemfile.parent().unwrap())
             .env("BUNDLE_GEMFILE", &gemfile)
             .args(["exec", "wordmove"]);
     }
@@ -266,5 +286,20 @@ mod tests {
         assert_eq!(result.environments.len(), 2);
         assert_eq!(result.local, "http://site.local");
         assert!(parse_environments("an error").is_err());
+    }
+}
+
+#[cfg(test)]
+mod discovery_tests {
+    use super::*;
+    #[test]
+    fn prioritizes_installed_rbenv_over_abandoned_shims() {
+        let home = tempfile::tempdir().unwrap();
+        let current = home.path().join(".anyenv/envs/rbenv");
+        std::fs::create_dir_all(current.join("bin")).unwrap();
+        std::fs::write(current.join("bin/rbenv"), "manager").unwrap();
+        std::fs::create_dir_all(home.path().join(".rbenv/shims")).unwrap();
+        let paths = rbenv_paths(home.path());
+        assert_eq!(paths.first(), Some(&current.join("shims")));
     }
 }
