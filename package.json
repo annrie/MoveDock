@@ -39,45 +39,45 @@
   "changelog": {
     "types": {
       "feat": {
-        "title": "🚀 新機能",
+        "title": "🚀 新機能 / Features",
         "semver": "minor"
       },
       "fix": {
-        "title": "🐛 バグ修正",
+        "title": "🐛 バグ修正 / Bug fixes",
         "semver": "patch"
       },
       "perf": {
-        "title": "⚡ パフォーマンスの向上",
+        "title": "⚡ パフォーマンスの向上 / Performance",
         "semver": "patch"
       },
       "refactor": {
-        "title": "♻️ リファクタリング",
+        "title": "♻️ リファクタリング / Refactoring",
         "semver": "patch"
       },
       "docs": {
-        "title": "📖 ドキュメント"
+        "title": "📖 ドキュメント / Documentation"
       },
       "style": {
-        "title": "🎨 コードスタイル"
+        "title": "🎨 コードスタイル / Code style"
       },
       "test": {
-        "title": "✅ テストの追加・修正"
+        "title": "✅ テストの追加・修正 / Tests"
       },
       "ci": {
-        "title": "🤖 CI関連"
+        "title": "🤖 CI関連 / CI"
       },
       "build": {
-        "title": "📦 ビルド",
+        "title": "📦 ビルド / Build",
         "semver": "patch"
       },
       "chore": {
-        "title": "🧹 ビルドプロセスまたは補助ツールの変更"
+        "title": "🧹 ビルドプロセスまたは補助ツールの変更 / Maintenance"
       },
       "config": {
-        "title": "🔧 設定ファイル"
+        "title": "🔧 設定ファイル / Configuration"
       },
       "package": {
-        "title": "📦 パッケージ"
+        "title": "📦 パッケージ / Packages"
       }
     },
     "templates": {
@@ -85,5 +85,13 @@
       "tagMessage": "v{{newVersion}}",
       "tagBody": "v{{newVersion}}"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/annrie/MoveDock.git"
+  },
+  "homepage": "https://github.com/annrie/MoveDock#readme",
+  "bugs": {
+    "url": "https://github.com/annrie/MoveDock/issues"
   }
 }
