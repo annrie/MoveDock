@@ -54,13 +54,12 @@ Intel / Apple Silicon 共通のアプリです。Developer ID 署名・公証は
 
 アプリの Universal 対応と、外部コマンドの導入は別です。Ruby / Wordmove / 外部コマンドは同梱しません。それぞれの Mac に適したものを導入してください。Ruby 環境の準備は [Wordmove README](https://github.com/annrie/wordmove#日本語) も参照してください。
 
-MoveDock 0.1.0 で検証した CLI は [annrie/wordmove のコミット `978860b`](https://github.com/annrie/wordmove/commit/978860b302b3de0db382ac54eba6be4c711e16d7) です。Ed25519 鍵と rsync の修正を含みます。フォークの古い `v5.3.0.pre.1` タグには、この 2 件の修正が含まれていません。新規導入時は Ruby 3.3 / 3.4 と Bundler を用意し、次のように検証済みのコミットを指定できます（`.ruby-version` は 3.3.12 を指定）。
+推奨する CLI は [annrie/wordmove v5.3.0.pre.2](https://github.com/annrie/wordmove/releases/tag/v5.3.0.pre.2) です。MoveDock 0.1.0 で検証した Ed25519 鍵と rsync の修正を含みます。新規導入時は Ruby 3.3 / 3.4 と Bundler を用意し、次のように修正版のタグを指定できます（`.ruby-version` は 3.3.12 を指定）。
 
 ```sh
 mkdir -p ~/work
-git clone https://github.com/annrie/wordmove.git ~/work/wordmove
+git clone --branch v5.3.0.pre.2 https://github.com/annrie/wordmove.git ~/work/wordmove
 cd ~/work/wordmove
-git checkout 978860b302b3de0db382ac54eba6be4c711e16d7
 bundle config set --local path vendor/bundle
 bundle install
 bundle exec wordmove --version
@@ -196,13 +195,12 @@ The same app supports Intel and Apple Silicon Macs. It uses an ad-hoc signature;
 
 Ruby, Wordmove and external tools are not bundled with the Universal app. Install versions suitable for your Mac. See the [Wordmove README](https://github.com/annrie/wordmove#english) for Ruby setup information.
 
-MoveDock 0.1.0 was verified with [annrie/wordmove commit `978860b`](https://github.com/annrie/wordmove/commit/978860b302b3de0db382ac54eba6be4c711e16d7), which includes the Ed25519 key and rsync fixes. The older `v5.3.0.pre.1` fork tag does not include these two fixes. For a new installation, prepare Ruby 3.3 / 3.4 and Bundler, then select the tested commit (`.ruby-version` specifies 3.3.12):
+The recommended CLI is [annrie/wordmove v5.3.0.pre.2](https://github.com/annrie/wordmove/releases/tag/v5.3.0.pre.2), which includes the Ed25519 key and rsync fixes verified with MoveDock 0.1.0. For a new installation, prepare Ruby 3.3 / 3.4 and Bundler, then select the maintenance release tag (`.ruby-version` specifies 3.3.12):
 
 ```sh
 mkdir -p ~/work
-git clone https://github.com/annrie/wordmove.git ~/work/wordmove
+git clone --branch v5.3.0.pre.2 https://github.com/annrie/wordmove.git ~/work/wordmove
 cd ~/work/wordmove
-git checkout 978860b302b3de0db382ac54eba6be4c711e16d7
 bundle config set --local path vendor/bundle
 bundle install
 bundle exec wordmove --version
