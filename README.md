@@ -153,6 +153,8 @@ lipo -archs src-tauri/target/universal-apple-darwin/release/bundle/macos/MoveDoc
 
 ### 検証範囲
 
+**Local.app の2サイトで実環境の同期を確認済みです。** DB同期とファイルの Pull を確認しています。
+
 CLI の引数、標準出力・エラー出力、失敗終了、停止、タイムアウト、Movefile の変更検出とフロントエンドの確認フローを模擬 CLI / テストデータで検証します。実サイトへの Push / Pull は自動検証しません。ステージング環境でバックアップを取って確認してください。
 
 ### ライセンス
@@ -293,6 +295,8 @@ lipo -archs src-tauri/target/universal-apple-darwin/release/bundle/macos/MoveDoc
 The default build uses an ad-hoc signature for local use. Developer ID signing and notarization for distribution are not configured.
 
 ### Verification scope
+
+**Real-world synchronization has been verified on two Local.app sites using MoveDock.** Verification includes database synchronization and file pulls.
 
 Mock CLI and test data cover arguments, stdout / stderr, failures, cancellation, timeouts, Movefile change detection and frontend confirmation flows. Automated tests do not perform real-site Push / Pull operations. Back up your data and verify your setup in staging before syncing.
 
