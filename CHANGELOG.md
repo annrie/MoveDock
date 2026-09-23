@@ -1,6 +1,23 @@
 # 変更履歴 / Changelog
 
 
+## v0.2.0
+
+[compare changes](https://github.com/annrie/MoveDock/compare/v0.1.0...v0.2.0)
+
+### 🚀 新機能 / Features
+
+- Add eight-language UI and localized error guidance ([df95735](https://github.com/annrie/MoveDock/commit/df95735))
+
+### 📖 ドキュメント / Documentation
+
+- Recommend Wordmove v5.3.0.pre.2 ([881594c](https://github.com/annrie/MoveDock/commit/881594c))
+- Document real-world sync verification ([4f057b2](https://github.com/annrie/MoveDock/commit/4f057b2))
+
+### ❤️ Contributors
+
+- Annrie ([@annrie](https://github.com/annrie))
+
 ## v0.1.0 — 2026-09-23
 
 [リリース説明 / Release notes](docs/releases/v0.1.0.md)

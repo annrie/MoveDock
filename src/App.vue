@@ -75,7 +75,7 @@ onMounted(initialize)
         </template>
       </div>
       <LogPanel v-if="view === 'sync' && site || running" :logs="logs" :result="lastResult" :run-error="runError" :running="running" :stopping="stopping" @stop="stop" />
-      <footer class="statusbar"><span role="status"><span class="status-dot" :class="{ working: locked }" />{{ running ? (stopping ? t('footer.stopping') : t('footer.running')) : (busy ? t(busy) : t('common.ready')) }}</span><span>MoveDock <span class="version">0.1.0</span></span></footer>
+      <footer class="statusbar"><span role="status"><span class="status-dot" :class="{ working: locked }" />{{ running ? (stopping ? t('footer.stopping') : t('footer.running')) : (busy ? t(busy) : t('common.ready')) }}</span><span>MoveDock <span class="version">0.2.0</span></span></footer>
     </main>
   </div>
 </template>
