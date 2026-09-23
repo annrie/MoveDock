@@ -4,7 +4,7 @@ import { useMoveDock } from './composables/useMoveDock'
 import { targets, statusLabel } from './types'
 import AppIcon from './components/AppIcon.vue'
 import LogPanel from './components/LogPanel.vue'
-const { native, data, settingsDirty, site, view, inspection, environment, direction, selectedTargets, document, dirty, busy, running, stopping, error, notice, logs, diagnostics, lastResult, locked, remote, ready, initialize, selectSite, addSite, loadEnvironments, editMovefile, reloadDocument, saveDocument, removeSite, saveSettings, autofillSettings, checkTools, chooseGemfile, run, stop } = useMoveDock()
+const { native, data, settingsDirty, site, view, inspection, environment, direction, selectedTargets, document, dirty, busy, running, stopping, error, notice, logs, diagnostics, lastResult, runError, locked, remote, ready, initialize, selectSite, addSite, loadEnvironments, editMovefile, reloadDocument, saveDocument, removeSite, saveSettings, autofillSettings, checkTools, chooseGemfile, run, stop } = useMoveDock()
 onMounted(initialize)
 const date = (value: string) => new Date(value).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 </script>
@@ -72,7 +72,7 @@ const date = (value: string) => new Date(value).toLocaleString('ja-JP', { month:
           <p class="operation-note">ログ本文・接続パスワードは履歴に保存しません。</p>
         </template>
       </div>
-      <LogPanel v-if="view === 'sync' && site || running" :logs="logs" :running="running" :stopping="stopping" @stop="stop" />
+      <LogPanel v-if="view === 'sync' && site || running" :logs="logs" :result="lastResult" :run-error="runError" :running="running" :stopping="stopping" @stop="stop" />
       <footer class="statusbar"><span role="status"><span class="status-dot" :class="{ working: locked }" />{{ running ? (stopping ? '停止処理中。完了までお待ちください。' : 'Wordmove を実行中… 終了するには先に停止してください。') : busy || '準備完了' }}</span><span>MoveDock <span class="version">0.1.0</span></span></footer>
     </main>
   </div>

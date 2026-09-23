@@ -114,13 +114,19 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .result-line { color: var(--accent); font-size: 16px; margin-top: 13px; }
 .result-line span { font-size: 14px; color: var(--muted); }
 .log-panel { flex-shrink: 0; border-top: 1px solid var(--border); }
-.log-toolbar { height: 39px; display: flex; align-items: center; justify-content: space-between; padding: 0 23px; background: var(--panel); }
+.log-toolbar { min-height: 44px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 7px 23px; background: var(--panel); }
 .log-toolbar h2 { display: flex; align-items: center; gap: 8px; font-size: 10px; }
 .log-count { color: var(--subtle); font-size: 14px; margin-left: 3px; font-weight: 400; }
 .follow { font-size: 14px; color: var(--muted); display: flex; gap: 4px; align-items: center; }
 .follow input { width: 12px; height: 12px; }
 .log-idle { font-size: 14px; color: var(--subtle); }
-.log-output { background: var(--console); color: #c5d4cf; padding: 14px 22px; height: 105px; overflow: auto; font: 14px/1.8 'SF Mono', Menlo, monospace; }
+.log-output { display: block; width: 100%; background: var(--console); color: #c5d4cf; padding: 14px 22px; height: 130px; overflow: auto; font: 14px/1.8 'SF Mono', Menlo, monospace; resize: none; border: 0; border-radius: 0; contain: strict; white-space: pre; overflow-wrap: normal; -webkit-user-select: text; user-select: text; }
+textarea.log-output { background: var(--console); color: #c5d4cf; border: 0; border-radius: 0; padding: 14px 22px; }
+.log-controls { flex-wrap: wrap; }
+.log-status, .log-copy, .log-copy-message { font-size: 14px; }
+.log-status { color: var(--text); }
+.log-copy { padding: 5px 8px; border: 1px solid var(--border-strong); border-radius: 5px; }
+.log-copy-message { padding: 6px 23px; background: var(--panel); color: var(--text); }
 .log-empty { display: flex; align-items: center; gap: 10px; color: #93a9a0; padding-top: 5px; }
 .prompt { color: #7ab39b; }
 .cursor { height: 12px; width: 5px; background: #8fae9f; }

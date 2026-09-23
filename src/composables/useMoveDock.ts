@@ -3,6 +3,7 @@ import { Channel, invoke, isTauri } from '@tauri-apps/api/core'
 import { confirm, open, save } from '@tauri-apps/plugin-dialog'
 import type { AppData, Diagnostic, Document, History, Inspection, LogEvent, RunRequest, Site } from '../types'
 import { statusLabel, targets } from '../types'
+import { createLogBuffer } from './logBuffer'
 
 export function useMoveDock() {
   const native = isTauri()
@@ -24,7 +25,9 @@ export function useMoveDock() {
   const stopping = ref(false)
   const error = ref('')
   const notice = ref('')
-  const logs = ref<LogEvent[]>([])
+  const logBuffer = createLogBuffer()
+  const { logs } = logBuffer
+  const runError = ref('')
   const diagnostics = ref<Diagnostic[]>([])
   const lastResult = ref<History | null>(null)
   const locked = computed(() => !!busy.value || running.value)
@@ -119,14 +122,18 @@ export function useMoveDock() {
       const targetNames = targets.filter(t => request.targets.includes(t.id)).map(t => t.label).join('、')
       const text = simulate ? `シミュレーションを実行します。\n${request.direction.toUpperCase()} → ${destination}\n対象: ${targetNames}\n\nERB の評価と接続は発生します。同期結果を保証するものではありません。` : `${destination} のデータを上書きする同期を実行します。\n対象: ${targetNames}\n\nファイルの削除や DB の置き換えが発生する場合があります。必要なバックアップを確認してください。`
       if (!await confirm(text, { title: simulate ? 'シミュレーション' : '同期の実行確認', kind: 'warning', okLabel: simulate ? 'シミュレーション実行' : `${request.direction.toUpperCase()} を実行`, cancelLabel: 'キャンセル' })) return
-      logs.value = [{ stream: 'system', line: `${site.value!.name} · ${site.value!.path}` }, { stream: 'system', line: preview }]; lastResult.value = null; running.value = true; stopping.value = false
+      logBuffer.reset([{ stream: 'system', line: `${site.value!.name} · ${site.value!.path}` }, { stream: 'system', line: preview }]); lastResult.value = null; runError.value = ''; running.value = true; stopping.value = false
       const output = new Channel<LogEvent>()
-      output.onmessage = event => { logs.value.push(event); if (logs.value.length > 2000) logs.value.splice(0, logs.value.length - 2000) }
+      output.onmessage = event => logBuffer.append(event)
       try {
         lastResult.value = await invoke<History>('run_sync', { request, output })
-        logs.value.push({ stream: 'system', line: `${statusLabel[lastResult.value.status]} / 終了コード: ${lastResult.value.exitCode ?? '—'}` })
+        logBuffer.append({ stream: 'system', line: `${statusLabel[lastResult.value.status]} / 終了コード: ${lastResult.value.exitCode ?? '—'}` })
         await refresh()
-      } finally { running.value = false; stopping.value = false }
+      } catch (e) {
+        runError.value = String(e)
+        logBuffer.append({ stream: 'stderr', line: runError.value })
+        throw e
+      } finally { logBuffer.flush(); running.value = false; stopping.value = false }
     })
   }
   async function stop() {
@@ -134,5 +141,5 @@ export function useMoveDock() {
     stopping.value = true
     try { await invoke('cancel_run') } catch (e) { error.value = String(e); stopping.value = false }
   }
-  return { native, data, settingsDirty, site, view, inspection, environment, direction, selectedTargets, document, dirty, busy, running, stopping, error, notice, logs, diagnostics, lastResult, locked, remote, ready, initialize, selectSite, addSite, loadEnvironments, editMovefile, reloadDocument, saveDocument, removeSite, saveSettings, autofillSettings, checkTools, chooseGemfile, run, stop }
+  return { native, data, settingsDirty, site, view, inspection, environment, direction, selectedTargets, document, dirty, busy, running, stopping, error, notice, logs, diagnostics, lastResult, runError, locked, remote, ready, initialize, selectSite, addSite, loadEnvironments, editMovefile, reloadDocument, saveDocument, removeSite, saveSettings, autofillSettings, checkTools, chooseGemfile, run, stop }
 }

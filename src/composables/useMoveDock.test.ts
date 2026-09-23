@@ -54,7 +54,7 @@ describe('sync workflow', () => {
     const pending = app.run(true)
     for (let i = 0; i < 8; i++) await nextTick()
     expect(app.running.value).toBe(true)
-    expect(app.logs.value.some(l => l.line === 'first output')).toBe(true)
+    await vi.waitFor(() => expect(app.logs.value.some(l => l.line === 'first output')).toBe(true))
     await app.run(false)
     expect(mock.invoke.mock.calls.filter(c => c[0] === 'run_sync')).toHaveLength(1)
     const request = mock.invoke.mock.calls.find(c => c[0] === 'run_sync')![1].request
