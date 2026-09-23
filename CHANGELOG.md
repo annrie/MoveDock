@@ -7,12 +7,12 @@
 
 ### 🚀 新機能 / Features
 
-- Add eight-language UI and localized error guidance ([df95735](https://github.com/annrie/MoveDock/commit/df95735))
+- 8言語の画面・エラー案内に対応 / Add eight-language UI and localized error guidance ([df95735](https://github.com/annrie/MoveDock/commit/df95735))
 
 ### 📖 ドキュメント / Documentation
 
-- Recommend Wordmove v5.3.0.pre.2 ([881594c](https://github.com/annrie/MoveDock/commit/881594c))
-- Document real-world sync verification ([4f057b2](https://github.com/annrie/MoveDock/commit/4f057b2))
+- 推奨 Wordmove を v5.3.0.pre.2 に更新 / Recommend Wordmove v5.3.0.pre.2 ([881594c](https://github.com/annrie/MoveDock/commit/881594c))
+- 実環境での同期確認を明記 / Document real-world sync verification ([4f057b2](https://github.com/annrie/MoveDock/commit/4f057b2))
 
 ### ❤️ Contributors
 
