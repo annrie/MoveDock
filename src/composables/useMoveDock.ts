@@ -2,7 +2,9 @@ import { computed, ref, watch } from 'vue'
 import { Channel, invoke, isTauri } from '@tauri-apps/api/core'
 import { confirm, open, save } from '@tauri-apps/plugin-dialog'
 import type { AppData, Diagnostic, Document, History, Inspection, LogEvent, RunRequest, Site } from '../types'
-import { statusLabel, targets } from '../types'
+import { targets } from '../types'
+import { t, formatList } from '../i18n'
+import { appMessage } from '../i18n/appMessages'
 import { createLogBuffer } from './logBuffer'
 
 export function useMoveDock() {
@@ -41,18 +43,18 @@ export function useMoveDock() {
     try { return await action() } catch (e) { error.value = String(e); return undefined } finally { busy.value = '' }
   }
   async function refresh() { data.value = await invoke<AppData>('get_data'); savedSettings.value = JSON.stringify(data.value.settings) }
-  async function initialize() { if (native) await task('読み込み中', refresh) }
+  async function initialize() { if (native) await task('busy.loading', refresh) }
   async function discard(): Promise<boolean> {
-    return !dirty.value || await confirm('Movefile の未保存の変更を破棄しますか？', { title: '未保存の変更', kind: 'warning', okLabel: '破棄する', cancelLabel: '戻る' })
+    return !dirty.value || await confirm(t('dialog.discardBody'), { title: t('dialog.unsaved'), kind: 'warning', okLabel: t('dialog.discard'), cancelLabel: t('common.back') })
   }
   async function selectSite(next: Site) {
     if (locked.value || !await discard()) return
     selectedId.value = next.id; selectedTargets.value = ['themes']; direction.value = 'pull'; lastResult.value = null; inspection.value = null; environment.value = ''; document.value = null; original.value = ''; view.value = 'sync'; error.value = ''; notice.value = ''
   }
   async function addSite(create = false) {
-    await task('サイトを追加中', async () => {
+    await task('busy.adding', async () => {
       if (!await discard()) return
-      const path = create ? await save({ title: 'Movefile を新規作成', defaultPath: 'movefile.yml' }) : await open({ title: 'Movefile を選択', multiple: false, directory: false })
+      const path = create ? await save({ title: t('dialog.create'), defaultPath: 'movefile.yml' }) : await open({ title: t('dialog.open'), multiple: false, directory: false })
       if (typeof path !== 'string') return
       if (create) await invoke('create_movefile', { path })
       const name = path.split('/').slice(-2, -1)[0] || 'WordPress site'
@@ -62,9 +64,9 @@ export function useMoveDock() {
     })
   }
   async function loadEnvironments() {
-    await task('環境を読み込み中', async () => {
+    await task('busy.environments', async () => {
       if (!site.value || dirty.value) return
-      const allowed = await confirm('この Movefile を信頼して環境を読み込みますか？\n\nMovefile に含まれる ERB は Ruby コードとして実行されます。内容が不明な場合は「Movefile」タブで先に確認してください。', { title: 'Movefile の読み込み', kind: 'warning', okLabel: '信頼して読み込む', cancelLabel: 'キャンセル' })
+      const allowed = await confirm(t('dialog.trustBody'), { title: t('dialog.trustTitle'), kind: 'warning', okLabel: t('dialog.trust'), cancelLabel: t('common.cancel') })
       if (!allowed) return
       inspection.value = null
       inspection.value = await invoke<Inspection>('inspect_site', { id: site.value.id })
@@ -73,65 +75,65 @@ export function useMoveDock() {
   }
   async function editMovefile() {
     if (!site.value) return
-    await task('Movefile を開いています', async () => {
+    await task('busy.opening', async () => {
       view.value = 'editor'
       if (!document.value) { document.value = await invoke<Document>('read_movefile', { id: site.value!.id }); original.value = document.value.content }
     })
   }
   async function reloadDocument() {
-    await task('再読み込み中', async () => {
+    await task('busy.reloading', async () => {
       if (!site.value || !await discard()) return
       document.value = await invoke<Document>('read_movefile', { id: site.value.id }); original.value = document.value.content
       inspection.value = null; environment.value = ''
     })
   }
   async function saveDocument() {
-    await task('保存中', async () => {
+    await task('busy.saving', async () => {
       if (!site.value || !document.value) return
       document.value = await invoke<Document>('save_movefile', { id: site.value.id, ...document.value })
-      original.value = document.value.content; inspection.value = null; environment.value = ''; notice.value = '保存しました。同期前に環境を再読み込みしてください。'
+      original.value = document.value.content; inspection.value = null; environment.value = ''; notice.value = 'notice.movefileSaved'
     })
   }
   async function removeSite() {
-    await task('登録を解除中', async () => {
+    await task('busy.removing', async () => {
       if (!site.value || !await discard()) return
-      if (!await confirm(`${site.value.name} の登録を解除しますか？\nMovefile とサイトのファイルは削除されません。`, { title: 'サイトの登録解除', okLabel: '登録解除', cancelLabel: 'キャンセル' })) return
+      if (!await confirm(t('dialog.removeBody', { name: site.value.name }), { title: t('dialog.removeTitle'), okLabel: t('dialog.remove'), cancelLabel: t('common.cancel') })) return
       await invoke('remove_site', { id: site.value.id }); await refresh(); selectedId.value = ''; document.value = null; inspection.value = null; view.value = 'sync'
     })
   }
   async function saveSettings() {
-    await task('設定を保存中', async () => { await invoke('save_settings', { settings: { ...data.value.settings } }); savedSettings.value = JSON.stringify(data.value.settings); inspection.value = null; environment.value = ''; diagnostics.value = []; data.value.setupNotes = []; notice.value = '設定を保存しました。' })
+    await task('busy.settings', async () => { await invoke('save_settings', { settings: { ...data.value.settings } }); savedSettings.value = JSON.stringify(data.value.settings); inspection.value = null; environment.value = ''; diagnostics.value = []; data.value.setupNotes = []; notice.value = 'notice.settingsSaved' })
   }
   async function autofillSettings() {
     if (settingsDirty.value) return
-    await task('実行環境を検出中', async () => {
+    await task('busy.detecting', async () => {
       data.value = await invoke<AppData>('autofill_settings')
       savedSettings.value = JSON.stringify(data.value.settings)
       inspection.value = null; environment.value = ''; diagnostics.value = []
-      notice.value = '検出できた空欄を入力・保存しました。'
+      notice.value = 'notice.detected'
     })
   }
-  async function checkTools() { if (settingsDirty.value) return; await task('実行環境を確認中', async () => { diagnostics.value = await invoke<Diagnostic[]>('diagnostics') }) }
-  async function chooseGemfile() { const path = await open({ title: 'Wordmove の Gemfile を選択', multiple: false }); if (typeof path === 'string') data.value.settings.gemfile = path }
+  async function checkTools() { if (settingsDirty.value) return; await task('busy.checking', async () => { diagnostics.value = await invoke<Diagnostic[]>('diagnostics') }) }
+  async function chooseGemfile() { const path = await open({ title: t('dialog.gemfile'), multiple: false }); if (typeof path === 'string') data.value.settings.gemfile = path }
   async function run(simulate: boolean) {
     if (!ready.value || !site.value) return
-    await task('実行内容を確認中', async () => {
+    await task('busy.confirming', async () => {
       const request: RunRequest = { siteId: site.value!.id, environment: environment.value, direction: direction.value, targets: [...selectedTargets.value], simulate }
       const preview = await invoke<string>('preview_run', { request })
-      const destination = request.direction === 'push' ? `${request.environment}（リモート）` : 'ローカル'
-      const targetNames = targets.filter(t => request.targets.includes(t.id)).map(t => t.label).join('、')
-      const text = simulate ? `シミュレーションを実行します。\n${request.direction.toUpperCase()} → ${destination}\n対象: ${targetNames}\n\nERB の評価と接続は発生します。同期結果を保証するものではありません。` : `${destination} のデータを上書きする同期を実行します。\n対象: ${targetNames}\n\nファイルの削除や DB の置き換えが発生する場合があります。必要なバックアップを確認してください。`
-      if (!await confirm(text, { title: simulate ? 'シミュレーション' : '同期の実行確認', kind: 'warning', okLabel: simulate ? 'シミュレーション実行' : `${request.direction.toUpperCase()} を実行`, cancelLabel: 'キャンセル' })) return
+      const destination = request.direction === 'push' ? t('dialog.remote', { environment: request.environment }) : t('common.local')
+      const targetNames = formatList(targets.filter(target => request.targets.includes(target.id)).map(target => t(`target.${target.id}`)))
+      const text = t(simulate ? 'dialog.simulateBody' : 'dialog.syncBody', { direction: request.direction.toUpperCase(), destination, targets: targetNames })
+      if (!await confirm(text, { title: simulate ? t('common.simulation') : t('dialog.syncTitle'), kind: 'warning', okLabel: simulate ? t('dialog.simulate') : t('common.execute', { direction: request.direction.toUpperCase() }), cancelLabel: t('common.cancel') })) return
       logBuffer.reset([{ stream: 'system', line: `${site.value!.name} · ${site.value!.path}` }, { stream: 'system', line: preview }]); lastResult.value = null; runError.value = ''; running.value = true; stopping.value = false
       const output = new Channel<LogEvent>()
       output.onmessage = event => logBuffer.append(event)
       try {
         lastResult.value = await invoke<History>('run_sync', { request, output })
-        logBuffer.append({ stream: 'system', line: `${statusLabel[lastResult.value.status]} / 終了コード: ${lastResult.value.exitCode ?? '—'}` })
+        logBuffer.append({ stream: 'system', line: appMessage('log.finished', { status: lastResult.value.status, code: lastResult.value.exitCode ?? '—' }) })
         await refresh()
       } catch (e) {
         runError.value = String(e)
-        logBuffer.append({ stream: 'stderr', line: runError.value })
+        logBuffer.append({ stream: 'system', line: runError.value })
         throw e
       } finally { logBuffer.flush(); running.value = false; stopping.value = false }
     })

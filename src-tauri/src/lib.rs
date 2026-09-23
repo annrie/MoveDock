@@ -1,6 +1,7 @@
 mod cli;
 mod commands;
 mod discovery;
+mod messages;
 mod model;
 mod process;
 mod store;
@@ -45,7 +46,7 @@ pub fn run() {
             }
         })
         .build(tauri::generate_context!())
-        .expect("MoveDock を起動できませんでした")
+        .expect("Could not start MoveDock")
         .run(|app, event| {
             if let tauri::RunEvent::ExitRequested { api, .. } = event {
                 let state = app.state::<store::State>();

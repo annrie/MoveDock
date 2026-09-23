@@ -20,12 +20,12 @@ pub async fn save_settings(
 ) -> Result<(), String> {
     let active = state.active.lock().await;
     if active.is_some() {
-        return Err("実行中は設定を変更できません".into());
+        return Err(crate::messages::message("backend.settingsLocked"));
     }
     if !["bundler", "direct"].contains(&settings.mode.as_str())
         || !["system", "light", "dark"].contains(&settings.theme.as_str())
     {
-        return Err("設定値が不正です".into());
+        return Err(crate::messages::message("backend.invalidSettings"));
     }
     let mut data = state.data.lock().await;
     let mut next = data.clone();
@@ -40,7 +40,7 @@ pub async fn save_settings(
 pub async fn autofill_settings(state: tauri::State<'_, State>) -> Result<AppData, String> {
     let active = state.active.lock().await;
     if active.is_some() {
-        return Err("実行中は設定を変更できません".into());
+        return Err(crate::messages::message("backend.settingsLocked"));
     }
     let mut data = state.data.lock().await;
     let mut next = data.clone();
@@ -62,7 +62,7 @@ pub async fn add_site(
         .map_err(|e| e.to_string())?;
     let path = path
         .to_str()
-        .ok_or("ファイルパスが UTF-8 ではありません")?
+        .ok_or(crate::messages::message("backend.nonUtf8"))?
         .to_string();
     cli::config_name(&path)?;
     store::read_document(&path)?;
@@ -89,7 +89,7 @@ pub async fn add_site(
 pub async fn remove_site(state: tauri::State<'_, State>, id: String) -> Result<(), String> {
     let active = state.active.lock().await;
     if active.is_some() {
-        return Err("実行中はサイトを削除できません".into());
+        return Err(crate::messages::message("backend.removeLocked"));
     }
     let mut data = state.data.lock().await;
     let mut next = data.clone();
@@ -113,16 +113,14 @@ pub async fn save_movefile(
 ) -> Result<Document, String> {
     let active = state.active.lock().await;
     if active.is_some() {
-        return Err("実行中は Movefile を保存できません".into());
+        return Err(crate::messages::message("backend.saveLocked"));
     }
     if content.len() > 1024 * 1024 {
-        return Err("Movefile は 1 MB 以下にしてください".into());
+        return Err(crate::messages::message("backend.fileTooLarge"));
     }
     let site = store::site(&*state.data.lock().await, &id)?;
     if store::read_document(&site.path)?.revision != revision {
-        return Err(
-            "Movefile が外部で変更されました。再読み込みして変更を確認してください。".into(),
-        );
+        return Err(crate::messages::message("backend.externalChange"));
     }
     store::atomic_write(Path::new(&site.path), content.as_bytes())?;
     state.trusted.lock().await.remove(&id);
@@ -135,7 +133,7 @@ pub async fn create_movefile(path: String) -> Result<(), String> {
         .write(true)
         .create_new(true)
         .open(path)
-        .map_err(|e| format!("新規作成できません（既存ファイルは上書きしません）: {e}"))?;
+        .map_err(|e| crate::messages::with_detail("backend.createFailed", &e.to_string()))?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -153,7 +151,7 @@ pub async fn inspect_site(
     // Serialize inspections with jobs/settings changes; loading ERB is an explicit user action.
     let active = state.active.lock().await;
     if active.is_some() {
-        return Err("実行中です".into());
+        return Err(crate::messages::message("backend.running"));
     }
     let data = state.data.lock().await.clone();
     let site = store::site(&data, &id)?;
@@ -164,7 +162,7 @@ pub async fn inspect_site(
     let output = cli::capture(command, Duration::from_secs(90)).await?;
     let inspection = cli::parse_environments(&output)?;
     if store::read_document(&site.path)?.revision != document.revision {
-        return Err("読み込み中に Movefile が変更されました。再読み込みしてください。".into());
+        return Err(crate::messages::message("backend.changedWhileLoading"));
     }
     state.trusted.lock().await.insert(
         id,
@@ -185,11 +183,11 @@ async fn prepare(
     let trusted = state.trusted.lock().await;
     let loaded = trusted
         .get(&site.id)
-        .ok_or("先に Movefile の環境を読み込んでください")?;
+        .ok_or(crate::messages::message("backend.loadFirst"))?;
     if loaded.settings != data.settings
         || loaded.revision != store::read_document(&site.path)?.revision
     {
-        return Err("設定または Movefile が変更されました。環境を再読み込みしてください。".into());
+        return Err(crate::messages::message("backend.reloadRequired"));
     }
     if !loaded
         .inspection
@@ -197,7 +195,7 @@ async fn prepare(
         .iter()
         .any(|e| e.name == request.environment)
     {
-        return Err("選択された環境が存在しません".into());
+        return Err(crate::messages::message("backend.environmentMissing"));
     }
     let mut command = cli::base(&data.settings, Path::new(&site.path).parent().unwrap())?;
     command.args(cli::arguments(request, &site)?);
@@ -218,7 +216,7 @@ pub async fn run_sync(
 ) -> Result<History, String> {
     let mut active = state.active.lock().await;
     if active.is_some() {
-        return Err("別の操作が実行中です".into());
+        return Err(crate::messages::message("backend.busy"));
     }
     let (site, command) = prepare(&state, &request).await?;
     let (tx, rx) = mpsc::channel(1);
@@ -254,7 +252,7 @@ pub async fn run_sync(
         }
         Err(error) => {
             let _ = output.send(LogEvent {
-                stream: "stderr".into(),
+                stream: "system".into(),
                 line: error.clone(),
             });
         }
@@ -267,8 +265,8 @@ pub async fn run_sync(
     *state.active.lock().await = None;
     if let Err(error) = saved {
         let _ = output.send(LogEvent {
-            stream: "stderr".into(),
-            line: format!("履歴の保存に失敗しました: {error}"),
+            stream: "system".into(),
+            line: crate::messages::with_cause("backend.historySave", &error),
         });
     }
     Ok(history)
@@ -316,11 +314,16 @@ pub async fn diagnostics(state: tauri::State<'_, State>) -> Result<Vec<Diagnosti
         Diagnostic {
             name: "Wordmove".into(),
             available: version.is_ok(),
-            detail: version.unwrap_or_else(|e| {
-                if settings.mode == "bundler" {
-                    format!("{e}\n\n指定した Gemfile のフォルダで bundle install が完了しているか確認してください。Ruby バージョン・gemset も同じ環境を使用します。")
-                } else { e }
-            }).trim().into(),
+            detail: version
+                .unwrap_or_else(|e| {
+                    if settings.mode == "bundler" {
+                        crate::messages::with_cause("backend.bundleHint", &e)
+                    } else {
+                        e
+                    }
+                })
+                .trim()
+                .into(),
         },
     );
     Ok(results)

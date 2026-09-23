@@ -194,3 +194,37 @@ td strong { font-weight: 550; }
 .setup-summary .section-heading { margin-bottom: 0; align-items: flex-start; }
 .setup-notes { margin: 12px 0 0; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.8; }
 p.setup-notes { padding-left: 0; }
+
+/* Allow translated text to wrap without reducing the established type scale. */
+.welcome h1, .welcome > p, .onboarding-steps p { white-space: pre-line; }
+.welcome h1, .onboarding-steps h2 { overflow-wrap: break-word; }
+.eyebrow { overflow-wrap: anywhere; }
+.sidebar-section { gap: 8px; }
+.sidebar-section .eyebrow { letter-spacing: .5px; }
+.primary, .secondary { white-space: normal; text-align: center; }
+.primary svg, .secondary svg, .nav-item svg, .run-note svg, .load-hint > svg { flex-shrink: 0; }
+.page-heading > div, .section-heading > div { min-width: 0; }
+.page-heading > button, .section-heading > button { flex-shrink: 0; max-width: 45%; }
+.endpoint-label { flex-wrap: wrap; letter-spacing: .3px; }
+.endpoint-label select { max-width: 100%; }
+.target-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.target > span { min-width: 0; overflow-wrap: anywhere; }
+.run-actions, .editor-actions, .settings-actions { flex-wrap: wrap; }
+.run-actions > .row, .editor-actions > .row { margin-left: auto; flex-wrap: wrap; }
+.run-note { flex: 1 1 170px; max-width: none; line-height: 1.6; }
+.history-table-wrap { overflow-x: auto; }
+td, th { overflow-wrap: anywhere; }
+.log-toolbar h2 { font-size: 14px; }
+.log-count, .badge { flex-shrink: 0; }
+.statusbar { height: auto; min-height: 28px; gap: 12px; padding-top: 4px; padding-bottom: 4px; }
+.statusbar > span:last-child { flex-shrink: 0; }
+.language-section { display: grid; grid-template-columns: 1fr minmax(180px, 260px); align-items: center; gap: 12px 20px; margin-bottom: 20px; padding: 20px 23px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
+.language-section label { font-size: 16px; font-weight: 600; }
+.language-section p { grid-column: 1 / -1; color: var(--muted); font-size: 14px; line-height: 1.7; }
+@media (max-width: 1000px) {
+  .target-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .section-heading { align-items: flex-start; flex-wrap: wrap; }
+  .setup-summary .section-heading > button { max-width: 100%; }
+  .onboarding-steps { gap: 18px; }
+  .log-toolbar { padding-left: 18px; padding-right: 18px; }
+}

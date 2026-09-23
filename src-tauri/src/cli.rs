@@ -62,12 +62,15 @@ pub fn path_env(settings: &Settings) -> OsString {
 }
 pub fn resolve(name: &str, settings: &Settings) -> Result<PathBuf, String> {
     which::which_in(expand(name), Some(path_env(settings)), "/").map_err(|_| {
-        format!("{name} が見つかりません。設定で実行ファイル・追加 PATH を確認してください。")
+        crate::messages::with_params(
+            "backend.executableMissing",
+            serde_json::json!({"name": name}),
+        )
     })
 }
 pub fn base(settings: &Settings, cwd: &Path) -> Result<Command, String> {
     if !["direct", "bundler"].contains(&settings.mode.as_str()) {
-        return Err("実行方式が不正です".into());
+        return Err(crate::messages::message("backend.invalidMode"));
     }
     let default = if settings.mode == "bundler" {
         "bundle"
@@ -105,9 +108,9 @@ pub fn base(settings: &Settings, cwd: &Path) -> Result<Command, String> {
     if settings.mode == "bundler" {
         let gemfile = expand(settings.gemfile.trim())
             .canonicalize()
-            .map_err(|_| "設定で Wordmove フォークの Gemfile を指定してください")?;
+            .map_err(|_| crate::messages::message("backend.gemfileRequired"))?;
         if !gemfile.is_file() {
-            return Err("Gemfile がファイルではありません".into());
+            return Err(crate::messages::message("backend.gemfileNotFile"));
         }
         // Reuse bundle config from the selected fork, not the WordPress site's config.
         command.env(
@@ -125,22 +128,22 @@ pub fn config_name(path: &str) -> Result<String, String> {
     let name = Path::new(path)
         .file_name()
         .and_then(|s| s.to_str())
-        .ok_or("Movefile のファイル名が不正です")?;
+        .ok_or(crate::messages::message("backend.invalidFilename"))?;
     if name.contains(['*', '?', '[', ']', '{', '}', '\\', '\n', '\r']) {
-        return Err("Movefile の名前には glob 特殊文字や改行を使用できません".into());
+        return Err(crate::messages::message("backend.unsafeFilename"));
     }
     // Wordmove joins --config onto its working directory. Use a relative filename.
     Ok(format!("./{name}"))
 }
 pub fn arguments(request: &RunRequest, site: &Site) -> Result<Vec<String>, String> {
     if !["push", "pull"].contains(&request.direction.as_str()) {
-        return Err("同期方向が不正です".into());
+        return Err(crate::messages::message("backend.invalidDirection"));
     }
     if request.environment.is_empty()
         || request.environment.starts_with('-')
         || request.environment.contains(['\n', '\r', '\0'])
     {
-        return Err("環境名が不正です".into());
+        return Err(crate::messages::message("backend.invalidEnvironment"));
     }
     let allowed = [
         "wordpress",
@@ -157,7 +160,7 @@ pub fn arguments(request: &RunRequest, site: &Site) -> Result<Vec<String>, Strin
             .iter()
             .any(|t| !allowed.contains(&t.as_str()))
     {
-        return Err("同期対象を選択してください".into());
+        return Err(crate::messages::message("backend.targetsRequired"));
     }
     let mut args = vec![
         request.direction.clone(),
@@ -212,9 +215,7 @@ pub fn parse_environments(text: &str) -> Result<Inspection, String> {
         }
     }
     if environments.is_empty() {
-        return Err(
-            "環境一覧を取得できません。Movefile のリモート環境に vhost を設定してください。".into(),
-        );
+        return Err(crate::messages::message("backend.noEnvironments"));
     }
     Ok(Inspection {
         local,
@@ -232,12 +233,13 @@ pub async fn capture(command: Command, limit: Duration) -> Result<String, String
     })
     .await?;
     if result.timed_out {
-        return Err(format!("コマンドがタイムアウトしました。\n{text}"));
+        return Err(crate::messages::with_detail("backend.timeout", &text));
     }
     if result.code != Some(0) {
-        return Err(format!(
-            "コマンドが失敗しました（終了コード {:?}）。\n{text}",
-            result.code
+        return Err(crate::messages::encode(
+            "backend.commandFailed",
+            serde_json::json!({"code": result.code.map(|code| code.to_string()).unwrap_or_else(|| "—".into())}),
+            &text,
         ));
     }
     Ok(text)

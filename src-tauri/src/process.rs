@@ -91,8 +91,12 @@ pub async fn execute(
     command.process_group(0);
     let mut child = command
         .spawn()
-        .map_err(|e| format!("コマンドを起動できません: {e}"))?;
-    let group = Group(child.id().ok_or("プロセス ID を取得できません")?);
+        .map_err(|e| crate::messages::with_detail("backend.spawnFailed", &e.to_string()))?;
+    let group = Group(
+        child
+            .id()
+            .ok_or(crate::messages::message("backend.pidMissing"))?,
+    );
     let (tx, mut rx) = mpsc::channel(128);
     let out = tokio::spawn(read_stream(
         child.stdout.take().unwrap(),

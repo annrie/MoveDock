@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { setLocale, t, supportedLocales } from '../i18n'
 import { nextTick } from 'vue'
 import { useMoveDock } from './useMoveDock'
 import type { AppData, History, LogEvent } from '../types'
@@ -11,7 +12,7 @@ const fixture: AppData = {
   sites: [{ id: 'test', name: 'Example', path: '/tmp/Example/Movefile' }], history: [],
 }
 beforeEach(() => {
-  vi.resetAllMocks(); mock.confirm.mockResolvedValue(true)
+  setLocale('ja'); vi.resetAllMocks(); mock.confirm.mockResolvedValue(true)
   mock.invoke.mockImplementation(async (name: string) => {
     if (name === 'get_data') return structuredClone(fixture)
     if (name === 'inspect_site') return { local: 'https://example.local', environments: [{ name: 'staging', vhost: 'https://stage.example' }] }
@@ -89,5 +90,34 @@ describe('automatic setup', () => {
     expect(mock.invoke).toHaveBeenCalledWith('autofill_settings')
     expect(app.data.value.settings.rubyVersion).toBe('3.3.12')
     expect(app.settingsDirty.value).toBe(false); expect(app.inspection.value).toBe(null)
+  })
+})
+
+
+describe('localized confirmations', () => {
+  it('uses the active language for trust and overwrite confirmations in all eight locales', async () => {
+    const app = useMoveDock(); await app.initialize(); await app.selectSite(app.data.value.sites[0])
+    for (const locale of supportedLocales) {
+      setLocale(locale.value); mock.confirm.mockResolvedValue(true)
+      await app.loadEnvironments()
+      expect(mock.confirm).toHaveBeenLastCalledWith(t('dialog.trustBody'), expect.objectContaining({ title: t('dialog.trustTitle'), cancelLabel: t('common.cancel') }))
+      app.direction.value = 'push'; app.selectedTargets.value = ['db']
+      mock.confirm.mockResolvedValue(false)
+      await app.run(false)
+      expect(mock.confirm).toHaveBeenLastCalledWith(t('dialog.syncBody', { destination: t('dialog.remote', { environment: 'staging' }), targets: t('target.db') }), expect.objectContaining({ title: t('dialog.syncTitle'), okLabel: t('common.execute', { direction: 'PUSH' }) }))
+      expect(mock.invoke.mock.calls.some(call => call[0] === 'run_sync')).toBe(false)
+    }
+  })
+  it('keeps loaded environments and unsaved connection settings when language changes', async () => {
+    const app = await loaded(); const inspection = app.inspection.value
+    const calls = mock.invoke.mock.calls.length
+    setLocale('fr'); await nextTick()
+    expect(app.ready.value).toBe(true); expect(app.settingsDirty.value).toBe(false)
+    app.data.value.settings.executable = '/unsaved/custom-wordmove'
+    setLocale('ko'); await nextTick()
+    expect(app.inspection.value).toBe(inspection)
+    expect(app.data.value.settings.executable).toBe('/unsaved/custom-wordmove')
+    expect(app.settingsDirty.value).toBe(true)
+    expect(mock.invoke.mock.calls).toHaveLength(calls)
   })
 })

@@ -20,15 +20,15 @@
 
 ## 日本語
 
-Wordmove CLI を操作する、日本語の macOS デスクトップアプリです。Intel と Apple Silicon 両方のコードを含むユニバーサルアプリをビルドします。Nuxt や常駐バックエンドサーバーは使用しません。
+Wordmove CLI を操作する、8言語対応の macOS デスクトップアプリです。Intel と Apple Silicon 両方のコードを含むユニバーサルアプリをビルドします。Nuxt や常駐バックエンドサーバーは使用しません。
 
 Wordmove 本体とは独立したリポジトリです。同期処理には導入済みの CLI を使用し、[annrie/wordmove の Ruby 3 対応フォーク](https://github.com/annrie/wordmove)を Bundler 経由で利用できます。上流 Wordmove の公式アプリではありません。
 
-**v0.1.0 の UI は日本語です。多言語対応は次のバージョンで予定しています。**
+**日本語・英語・繁体字中国語・フランス語・スペイン語・ポルトガル語（ブラジル）・ドイツ語・韓国語に対応しています。** 初回はシステムの言語を検出し、未対応の言語は英語で表示します。「設定 → 表示言語」で変更すると即時反映・保存されます。Wordmove / SSH / rsync などの実行ログは原文のまま表示し、MoveDock の通知・確認ダイアログ・エラー案内は選択した言語で表示します。言語を切り替えても、編集中の接続設定や読み込み済みの環境は保持されます。
 
 ### ダウンロード・インストール
 
-1. [最新の Release](https://github.com/annrie/MoveDock/releases/latest) から `MoveDock_0.1.0_universal.dmg` をダウンロードします。
+1. [最新の Release](https://github.com/annrie/MoveDock/releases/latest) から `MoveDock_0.2.0_universal.dmg` をダウンロードします。
 2. DMG を開き、`MoveDock.app` をアプリケーションフォルダへコピーします。
 3. Ruby / Wordmove と必要な外部コマンドを導入し、下の「最初の設定」を行います。
 
@@ -93,11 +93,11 @@ Bundler モードは指定した Gemfile とその横の `.bundle/config` を利
 - ログは画面上で最新 2000 行を保持します。既知のパスワード表現を伏せますが、任意のフック出力に含まれる機密情報の完全な秘匿は保証しません。
 - 新規 Movefile テンプレートは例示の接続先です。編集してから使用してください。初期状態でリモート DB への push を `forbid` で禁止しています。
 
-設定・サイト・実行履歴は `~/Library/Application Support/com.annrie.movedock/settings.json` に保存します。Movefile の接続パスワードは設定ファイルへ複製しません。
+設定・サイト・実行履歴は `~/Library/Application Support/com.annrie.movedock/settings.json` に保存します。表示言語はアプリの WebView のローカルストレージに別途保存します。Movefile の接続パスワードは設定ファイルへ複製しません。
 
 ### 既知の問題
 
-初回の「環境を読み込む」が一度タイムアウトし、再読み込みで成功する事象を確認しています。原因は調査中で、v0.1.0 では未解決です。今回の再起動・負荷テストでは再現せず、環境取得は約 4〜16 秒で成功しました。失敗した場合は読み込みを再試行してください。詳細は [検証記録](docs/verification.md) にあります。
+初回の「環境を読み込む」が一度タイムアウトし、再読み込みで成功する事象を確認しています。原因は調査中で、v0.2.0 でも未解決です。今回の再起動・負荷テストでは再現せず、環境取得は約 4〜16 秒で成功しました。失敗した場合は読み込みを再試行してください。詳細は [検証記録](docs/verification.md) にあります。
 
 ### 開発
 
@@ -142,7 +142,7 @@ pnpm app:build
 出力:
 
 - `src-tauri/target/universal-apple-darwin/release/bundle/macos/MoveDock.app`
-- `src-tauri/target/universal-apple-darwin/release/bundle/dmg/MoveDock_0.1.0_universal.dmg`
+- `src-tauri/target/universal-apple-darwin/release/bundle/dmg/MoveDock_0.2.0_universal.dmg`
 
 ```sh
 lipo -archs src-tauri/target/universal-apple-darwin/release/bundle/macos/MoveDock.app/Contents/MacOS/movedock
@@ -167,11 +167,11 @@ MoveDock is a macOS desktop interface for the Wordmove CLI, built with Rust, Tau
 
 The app is maintained separately from Wordmove and runs an installed CLI. It supports the [annrie/wordmove Ruby 3 compatibility fork](https://github.com/annrie/wordmove) through Bundler. It is not an official upstream Wordmove application.
 
-**The v0.1.0 app UI is in Japanese. Multilingual UI support is planned for the next version.**
+**Available in Japanese, English, Traditional Chinese, French, Spanish, Brazilian Portuguese, German and Korean.** The first launch detects the system language, falling back to English for unsupported languages. Changes under **Settings → Display language** apply and save immediately. Wordmove / SSH / rsync output remains in its original language; MoveDock notifications, confirmations and error guidance use the selected language. Switching languages preserves unsaved connection settings and loaded environments.
 
 ### Download and install
 
-1. Download `MoveDock_0.1.0_universal.dmg` from the [latest release](https://github.com/annrie/MoveDock/releases/latest).
+1. Download `MoveDock_0.2.0_universal.dmg` from the [latest release](https://github.com/annrie/MoveDock/releases/latest).
 2. Open the DMG and copy `MoveDock.app` to your Applications folder.
 3. Install Ruby, Wordmove and the required external commands, then follow “First-time setup” below.
 
@@ -236,11 +236,11 @@ Bundler mode uses the selected Gemfile and its adjacent `.bundle/config`. It als
 - The UI retains the latest 2,000 log lines. Known password patterns are redacted, but arbitrary hook output may still contain sensitive information.
 - The new Movefile template contains example connection details. Edit it before use; remote database pushes are forbidden by default.
 
-Settings, registered sites and history are stored in `~/Library/Application Support/com.annrie.movedock/settings.json`. Connection passwords from Movefiles are not copied into this settings file.
+Settings, registered sites and history are stored in `~/Library/Application Support/com.annrie.movedock/settings.json`. Connection passwords from Movefiles are not copied into this settings file. The display language is stored separately in the app WebView’s local storage.
 
 ### Known issue
 
-The first environment load has occasionally timed out, with a retry succeeding. The cause is under investigation and remains unresolved in v0.1.0. Recent restart and load tests did not reproduce the timeout; environment discovery completed in approximately 4–16 seconds. Retry loading if it fails. See the [verification record](docs/verification.md) for details (Japanese).
+The first environment load has occasionally timed out, with a retry succeeding. The cause is under investigation and remains unresolved in v0.2.0. Recent restart and load tests did not reproduce the timeout; environment discovery completed in approximately 4–16 seconds. Retry loading if it fails. See the [verification record](docs/verification.md) for details (Japanese).
 
 ### Development
 
@@ -285,7 +285,7 @@ pnpm app:build
 Outputs:
 
 - `src-tauri/target/universal-apple-darwin/release/bundle/macos/MoveDock.app`
-- `src-tauri/target/universal-apple-darwin/release/bundle/dmg/MoveDock_0.1.0_universal.dmg`
+- `src-tauri/target/universal-apple-darwin/release/bundle/dmg/MoveDock_0.2.0_universal.dmg`
 
 ```sh
 lipo -archs src-tauri/target/universal-apple-darwin/release/bundle/macos/MoveDock.app/Contents/MacOS/movedock

@@ -1,10 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { appMessage } from '../i18n/appMessages'
+import { setLocale } from '../i18n'
 import LogPanel from './LogPanel.vue'
 import type { History } from '../types'
 
 const props = { logs: [{ stream: 'stdout', line: 'last file.php' }], running: false, stopping: false, result: null, runError: '' }
 const result: History = { id: 'done', siteName: 'Example', startedAt: '', finishedAt: '', request: { siteId: 'site', environment: 'staging', direction: 'pull', targets: ['themes'], simulate: true }, status: 'success', exitCode: 0 }
+beforeEach(() => setLocale('ja'))
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 describe('execution log', () => {
@@ -57,6 +60,24 @@ describe('execution log', () => {
     await flushPromises()
     expect(wrapper.text()).toContain('コピーできませんでした')
     expect(wrapper.get('textarea').element.value).toBe('last file.php')
+    wrapper.unmount()
+  })
+})
+
+
+describe('localized logs', () => {
+  it('updates controls and app messages while leaving stdout and stderr untouched', async () => {
+    const raw = 'Permission denied (publickey). 日本語のファイル.php'
+    const envelope = appMessage('backend.timeout')
+    const wrapper = mount(LogPanel, { props: { ...props, result: { ...result, status: 'failed', exitCode: 23 }, logs: [{ stream: 'stderr', line: raw }, { stream: 'stdout', line: envelope }, { stream: 'system', line: envelope }] } })
+    setLocale('en'); await flushPromises()
+    expect(wrapper.get('.log-copy').text()).toBe('Copy log')
+    expect(wrapper.get('textarea').element.value).toBe(raw + '\n' + envelope + '\nThe command timed out.')
+    expect(wrapper.text()).toContain('SSH connection failed.')
+    setLocale('de'); await flushPromises()
+    expect(wrapper.get('.log-copy').text()).toBe('Protokoll kopieren')
+    expect(wrapper.get('textarea').element.value).toContain(raw)
+    expect(wrapper.get('.log-status').text()).toContain('Fehlgeschlagen')
     wrapper.unmount()
   })
 })

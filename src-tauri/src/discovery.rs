@@ -86,9 +86,11 @@ pub fn fill(settings: &mut Settings, home: &Path, search_path: &OsStr) -> Vec<St
         let projects = project_candidates(home);
         match projects.as_slice() {
             [file] => settings.gemfile = file.to_string_lossy().into_owned(),
-            [] if untouched && executable("wordmove", search_path).is_some() => settings.mode = "direct".into(),
-            [] => notes.push("Wordmove の Gemfile が見つかりません。Bundler を使う場合は「選択」で指定してください。".into()),
-            _ => notes.push("Wordmove の Gemfile が複数見つかりました。「選択」で使用するものを指定してください。".into()),
+            [] if untouched && executable("wordmove", search_path).is_some() => {
+                settings.mode = "direct".into()
+            }
+            [] => notes.push(crate::messages::message("setup.gemfileMissing")),
+            _ => notes.push(crate::messages::message("setup.gemfileMultiple")),
         }
     }
     if settings.ruby_version.trim().is_empty() {
@@ -155,22 +157,19 @@ pub fn fill(settings: &mut Settings, home: &Path, search_path: &OsStr) -> Vec<St
         if let Some(path) = executable(name, &paths) {
             settings.executable = path.to_string_lossy().into_owned();
         } else {
-            notes.push(format!(
-                "{name} が見つかりません。導入後に「空欄を再検出」を実行してください。"
+            notes.push(crate::messages::with_params(
+                "setup.executableMissing",
+                serde_json::json!({"name": name}),
             ));
         }
     }
-    notes.insert(
-        0,
-        "検出できた項目を自動入力しました。実際の起動状況は「実行環境を確認」で確認できます。"
-            .into(),
-    );
+    notes.insert(0, crate::messages::message("setup.detected"));
     notes
 }
 
 pub fn detect(settings: &mut Settings) -> Vec<String> {
     let Some(home) = dirs::home_dir() else {
-        return vec!["ホームフォルダを取得できませんでした。".into()];
+        return vec![crate::messages::message("setup.homeMissing")];
     };
     let paths = cli::path_env(settings);
     fill(settings, &home, &paths)
@@ -239,7 +238,7 @@ mod tests {
         let mut settings = Settings::default();
         let notes = fill(&mut settings, home, OsStr::new("/nonexistent"));
         assert!(settings.gemfile.is_empty());
-        assert!(notes.iter().any(|n| n.contains("複数")));
+        assert!(notes.iter().any(|n| n.contains("setup.gemfileMultiple")));
         for version in ["8.3.9+0", "8.3.23+0"] {
             fake_binary(&home.join(format!("Library/Application Support/Local/lightning-services/php-{version}/bin/darwin/bin")), "php");
         }
