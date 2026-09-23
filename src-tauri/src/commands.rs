@@ -160,7 +160,8 @@ pub async fn inspect_site(
     let document = store::read_document(&site.path)?;
     let mut command = cli::base(&data.settings, Path::new(&site.path).parent().unwrap())?;
     command.args(["list", "--config", &cli::config_name(&site.path)?]);
-    let output = cli::capture(command, Duration::from_secs(30)).await?;
+    // A cold Bundler/Ruby startup can exceed 30 seconds on a busy Mac.
+    let output = cli::capture(command, Duration::from_secs(90)).await?;
     let inspection = cli::parse_environments(&output)?;
     if store::read_document(&site.path)?.revision != document.revision {
         return Err("読み込み中に Movefile が変更されました。再読み込みしてください。".into());
