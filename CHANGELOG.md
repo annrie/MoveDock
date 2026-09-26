@@ -1,6 +1,27 @@
 # 変更履歴 / Changelog
 
 
+## v0.2.1
+
+[compare changes](https://github.com/annrie/MoveDock/compare/v0.2.0...v0.2.1)
+
+### 📖 ドキュメント / Documentation
+
+- Record v0.2.0 verification in Japanese and English ([c4d18b5](https://github.com/annrie/MoveDock/commit/c4d18b5))
+
+### 📦 ビルド / Build
+
+- 🔧 共通リリーススクリプトへ移行 / Harden release script and share it with the other Tauri apps ([#1](https://github.com/annrie/MoveDock/pull/1))
+- **deps:** ⬆️ tauri 2.11.6(セキュリティ修正)・vite 8.3.1・vue 3.5.43 ほか minor/patch 一括更新 / Bump tauri to 2.11.6 (security fix), vite, vue and other minor/patch deps ([fadd25d](https://github.com/annrie/MoveDock/commit/fadd25d))
+
+### 🧹 ビルドプロセスまたは補助ツールの変更 / Maintenance
+
+- 🔧 Codex アプリのプロジェクト設定を追跡 / Track Codex app project settings (.codex) ([a893723](https://github.com/annrie/MoveDock/commit/a893723))
+
+### ❤️ Contributors
+
+- Annrie ([@annrie](https://github.com/annrie))
+
 ## v0.2.0
 
 [compare changes](https://github.com/annrie/MoveDock/compare/v0.1.0...v0.2.0)
