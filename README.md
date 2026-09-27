@@ -16,7 +16,7 @@
 </p>
 <p align="center"><a href="#日本語">日本語</a> · <a href="#english">English</a> · <a href="https://github.com/annrie/MoveDock/releases/latest">Download / ダウンロード</a></p>
 
-![MoveDock workspace — example with a fictional site / 架空のサイトを使った表示例](docs/screenshots/workspace.png)
+![MoveDock workspace / ワークスペース画面](docs/screenshots/workspace.png)
 
 ## 日本語
 
