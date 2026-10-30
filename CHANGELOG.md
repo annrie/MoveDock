@@ -1,6 +1,23 @@
 # 変更履歴 / Changelog
 
 
+## v0.2.2
+
+[compare changes](https://github.com/annrie/MoveDock/compare/v0.2.1...v0.2.2)
+
+### 📖 ドキュメント / Documentation
+
+- 📸 READMEのスクリーンショットを実際のワークスペース画面に更新 / Update README screenshot to actual workspace screen ([f82dcfb](https://github.com/annrie/MoveDock/commit/f82dcfb))
+
+### 📦 ビルド / Build
+
+- **deps:** ⬆️ pnpm 11.21.0 → 11.28.5 ([17573d3](https://github.com/annrie/MoveDock/commit/17573d3))
+- **deps:** ⬆️ tauri 2.12.5(セキュリティ修正)・vite 8.3.5・vue 3.5.44 ほか minor/patch 一括更新 / Bump tauri to 2.12.5 (security fix), vite, vue and other minor/patch deps ([6cfe184](https://github.com/annrie/MoveDock/commit/6cfe184))
+
+### ❤️ Contributors
+
+- Annrie ([@annrie](https://github.com/annrie))
+
 ## v0.2.1
 
 [compare changes](https://github.com/annrie/MoveDock/compare/v0.2.0...v0.2.1)

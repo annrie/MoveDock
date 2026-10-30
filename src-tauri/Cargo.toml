@@ -1,6 +1,6 @@
 [package]
 name = "movedock"
-version = "0.2.1"
+version = "0.2.2"
 description = "Wordmove desktop client"
 authors = ["annrie"]
 license = "MIT"
