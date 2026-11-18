@@ -1,6 +1,18 @@
 # 変更履歴 / Changelog
 
 
+## v0.2.3
+
+[compare changes](https://github.com/annrie/MoveDock/compare/v0.2.2...v0.2.3)
+
+### 📦 ビルド / Build
+
+- **deps:** ⬆️ happy-dom 21.0.4 で pnpm audit の High 2件を解消 / Bump happy-dom to 21.0.4 to fix 2 High pnpm audit findings ([2511a63](https://github.com/annrie/MoveDock/commit/2511a63))
+
+### ❤️ Contributors
+
+- Annrie ([@annrie](https://github.com/annrie))
+
 ## v0.2.2
 
 [compare changes](https://github.com/annrie/MoveDock/compare/v0.2.1...v0.2.2)
